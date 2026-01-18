@@ -1,0 +1,56 @@
+app:
+  name: "Personal Brain"
+  debug: false
+  log_level: "INFO"
+
+vault:
+  path: "D:\\obsdn\\Personal"
+  watch_interval: 1.0
+  ignore_patterns:
+    - ".obsidian/*"
+    - ".trash/*"
+    - "*.excalidraw.md"
+
+database:
+  sqlite_path: "./data/brain.db"
+  chroma_path: "./data/chroma"
+
+embeddings:
+  provider: "openai"
+  model: "text-embedding-3-small"
+  batch_size: 100
+  cache_enabled: true
+
+claude:
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 4096
+  temperature: 0.7
+
+retrieval:
+  vector_weight: 0.7
+  bm25_weight: 0.3
+  max_results: 20
+  link_expansion_hops: 1
+
+chunking:
+  strategy: "semantic"
+  max_chunk_size: 512
+  overlap: 50
+
+scheduler:
+  briefing_time: "07:00"
+  reminder_check_interval: 15
+  timezone: "UTC"
+
+api:
+  host: "127.0.0.1"
+  port: 8000
+  cors_origins:
+    - "http://localhost:3000"
+
+notifications:
+  enabled: true
+  desktop: true
+  n8n:
+    enabled: true
+    webhook_url: ""
