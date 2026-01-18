@@ -91,8 +91,8 @@ A **second brain assistant** that turns your Obsidian vault into a queryable kno
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/personal-brain.git
-cd personal-brain
+git clone https://github.com/dafikabukcu/personalBrain.git
+cd personalBrain
 
 # Create virtual environment
 python -m venv .venv
