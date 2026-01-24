@@ -72,6 +72,14 @@ class BrainService:
 
         logger.info("brain_service_initialized", vault_path=str(config.vault.path))
 
+    def search(self, query: str, k: int = 10) -> list[SearchResult]:
+        """Search for relevant chunks without AI summarization.
+
+        Use this when the caller (e.g., another AI agent) will handle
+        the summarization/answering, avoiding double LLM calls.
+        """
+        return self.retriever.retrieve(query, k=k)
+
     def query(self, question: str, k: int = 10) -> QueryResult:
         """Query the brain with a question."""
         start_time = datetime.now()

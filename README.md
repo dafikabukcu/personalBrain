@@ -6,6 +6,7 @@ A **second brain assistant** that turns your Obsidian vault into a queryable kno
 
 - **🔍 Semantic Search** - Find notes by meaning, not just keywords
 - **💬 Natural Language Q&A** - Ask questions like "What did I learn about X?"
+- **🤖 AI Agent Integration** - Raw search mode for Clawdbot/Claude Code (avoids double LLM calls)
 - **📝 Quick Capture** - Add notes, tasks, and references from the command line
 - **✅ Task Extraction** - Automatically extracts `- [ ]` tasks from your notes
 - **📊 Daily Briefings** - AI-generated summary of your day's tasks and reminders
@@ -160,6 +161,35 @@ brain ask "What are my goals for this year?" -v
 #   • Cold Reading/12-Gövde Eğilmesi.md > Limbik Sistem
 #   • Cold Reading/07-Beden Dilinin Aynası.md
 ```
+
+### Raw Search (for AI Agent Integration)
+
+The `search` command returns raw note chunks **without AI summarization**. This is designed for integration with external AI agents (e.g., Clawdbot, Claude Code) to avoid double LLM calls.
+
+```bash
+# Basic search (human-readable text output)
+brain search "cybersecurity notes"
+
+# JSON output (best for programmatic/agent use)
+brain search "OSINT techniques" --format json
+
+# Markdown output
+brain search "meeting notes" --format markdown
+
+# Limit results
+brain search "project ideas" --limit 5
+```
+
+**Why use this instead of `ask`?**
+
+| Command | Use Case |
+|---------|----------|
+| `brain ask` | Standalone use - returns AI-generated answer |
+| `brain search` | Agent integration - returns raw chunks for the calling agent to process |
+
+When integrated with another AI (like Clawdbot/Jenna), using `search` avoids paying for two Claude calls:
+- ❌ `ask`: Your query → Claude #1 (in brain) → Answer → Claude #2 (in agent) → Response
+- ✅ `search`: Your query → Raw chunks → Claude (in agent) → Response
 
 ### Quick Capture
 

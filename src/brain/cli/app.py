@@ -1,5 +1,6 @@
 """Main CLI application using Typer."""
 
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -13,12 +14,16 @@ from rich.table import Table
 from brain.core.config import get_config
 from brain.service import BrainService
 
+# Fix Unicode encoding on Windows (Turkish chars in file paths)
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 app = typer.Typer(
     name="brain",
     help="Your Second Brain CLI - Query and manage your personal knowledge base.",
     no_args_is_help=True,
 )
-console = Console()
+console = Console(force_terminal=False)
 
 
 def get_service() -> BrainService:
@@ -55,6 +60,69 @@ def ask(
             path = src.chunk.document_path
             header = src.chunk.header_path
             console.print(f"  [blue]•[/blue] {path}" + (f" > {header}" if header else ""))
+
+
+@app.command()
+def search(
+    query: str = typer.Argument(..., help="Search query"),
+    limit: int = typer.Option(10, "--limit", "-n", help="Max results"),
+    format: str = typer.Option("text", "--format", "-f", help="Output format: text, json, markdown"),
+):
+    """Search notes and return raw chunks (no AI summarization).
+
+    Use this when integrating with other AI agents (e.g., Clawdbot/Jenna)
+    to avoid double LLM calls. The agent can read the chunks directly.
+    """
+    import json
+
+    service = get_service()
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Searching...", total=None)
+        results = service.search(query, k=limit)
+
+    if not results:
+        if format == "json":
+            console.print("[]")
+        else:
+            console.print("[dim]No results found.[/dim]")
+        return
+
+    if format == "json":
+        output = [
+            {
+                "content": r.chunk.content,
+                "path": r.chunk.document_path,
+                "header": r.chunk.header_path or None,
+                "score": round(r.score, 4),
+                "source": r.source,
+            }
+            for r in results
+        ]
+        console.print(json.dumps(output, indent=2, ensure_ascii=False))
+
+    elif format == "markdown":
+        for i, r in enumerate(results, 1):
+            console.print(f"## Result {i}: {r.chunk.document_path}")
+            if r.chunk.header_path:
+                console.print(f"*Section: {r.chunk.header_path}*\n")
+            console.print(r.chunk.content)
+            console.print(f"\n*Score: {r.score:.4f} ({r.source})*")
+            console.print("\n---\n")
+
+    else:  # text format
+        for i, r in enumerate(results, 1):
+            console.print(f"[blue]── Result {i} ──[/blue] [dim]{r.chunk.document_path}[/dim]")
+            if r.chunk.header_path:
+                console.print(f"[dim]Section: {r.chunk.header_path}[/dim]")
+            console.print(r.chunk.content)
+            console.print(f"[dim]Score: {r.score:.4f} ({r.source})[/dim]")
+            console.print()
 
 
 @app.command()
